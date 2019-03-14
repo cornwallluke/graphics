@@ -167,7 +167,7 @@ function main() {
 		// Tell the browser to load an image
 		// Register the event handler to be called on loading an image
 		Cubetexture.image.onload = function(){ loadTexAndDraw(gl, n, Cubetexture, u_Sampler, u_UseTextures); };
-		Cubetexture.image.src = 'mcuv.jpg';
+		Cubetexture.image.src = 'mcuvt.jpg';
 	});
 }
 
