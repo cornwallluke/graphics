@@ -32,6 +32,7 @@ var FSHADER_SOURCE =
   'uniform vec3 u_LightColor;\n' +    
   'uniform vec3 u_LightPosition;\n' + 
   'uniform vec3 u_AmbientLight;\n' +  
+	'uniform vec3 u_eyePosition;\n'+
 	'varying vec3 v_eyeDir;\n'+
   'varying vec3 v_Normal;\n' +
   'varying vec3 v_Position;\n' +
@@ -42,15 +43,15 @@ var FSHADER_SOURCE =
   'void main() {\n' +
 		
   '  vec3 normal = normalize(v_Normal);\n' +
-	'  u_nSampler;u_UseNormals\n;u_nSampler;'+
+	'  u_nSampler;u_UseNormals\n;u_nSampler;\nu_eyePosition;\n'+
 	'  if (u_UseNormals){\n'+
 	'   \n'+
-  '  	normal = normalize(normalize((texture2D(u_nSampler,v_TexCoords).rgb - 0.5))+normal*4.0);\n' +//offset the normal by the rgb values on the normal map
+  '  	normal = normalize(normalize((texture2D(u_nSampler,v_TexCoords).rgb - 0.5))+normal*4.0);\n' +
 	'  }\n'+ 
 	'  vec3 lightDirection = normalize(vec3(1, 1, 0.8));\n' + // Light direction
 	'  u_LightPosition;\n'+
      
-	'  if(!u_DayTime){\n'+//if it is night time use the point light
+	'  if(!u_DayTime){\n'+
   '  	 lightDirection = normalize(u_LightPosition - v_Position);\n' +
 	'  }\n'+
      
@@ -131,7 +132,7 @@ function main() {
 		//set the ambient light level
 		gl.uniform3f(u_AmbientLight, 0.1, 0.1, 0.1);
 		
-		
+		//as all our objects have textures use them
 		gl.uniform1i(u_UseTextures, true);
 		
 		var tbufs = [gl.TEXTURE0];
@@ -190,7 +191,7 @@ var g_boatPos = 0.0;  // current movement state of boat
 var g_showBoat = false;  // whether the boat is currently sailing
 var g_cameraHeight=400; //current camera height
 var g_fov=103; //camera field of view
-var g_cameraAngle=0; //where the camera is looking from about some point
+var g_cameraAngle=230; //where the camera is looking from about some point
 var timeofday=true;
 var waterposition=0;//current location of the water
 function keydown(ev,gl) {
@@ -208,8 +209,7 @@ function keydown(ev,gl) {
     case 37: // Left arrow key -> the negative rotation of arm1 around the y-axis
       g_cameraAngle = (g_cameraAngle - ANGLE_STEP) % 360;
       break;
-    case 82: // 'r'key -> reset the bridge construction and change seed for trees
-			g_seed=Math.round(Math.random()*1000);
+    case 82: // 'r'key -> reset the bridge construction
       g_bridgeAngle=10;
 			g_bridgeMove=false;
       break; 
@@ -351,10 +351,12 @@ function initVertexBuffers(gl) {//this function creates a cube and stores it in 
 
   // Colors
   var colors = new Float32Array([
-    0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   
-		0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   
-		0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   
-		0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2
+    1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,
+    1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,
+    1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,
+    1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,
+    1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0,
+    1, 0, 0,   1, 0, 0,   1, 0, 0,  1, 0, 0　
  ]);
 
   // Normal
@@ -573,7 +575,7 @@ function draw(gl,meshes,meshes,textures) {
 			console.log('Failed to set the vertex information');
 			return;
 	}
-	var seedholder=g_seed;//this stores the random seed for making the trees (not wind)
+	g_seed=10;//this sets the random seed for making the trees (not wind)
 	windx+=(Math.random()*0.1)%100//randomly change the wind velocity (mod to prevent overflow if left for wayy too long)
 	windy+=(Math.random()*0.13)%100
 	
@@ -589,20 +591,16 @@ function draw(gl,meshes,meshes,textures) {
 		
 		
 		
-	gl.activeTexture(gl.TEXTURE0);
-
-  // Bind the texture object to the target
-	gl.bindTexture(gl.TEXTURE_2D, textures[4]);
+		
 	for(var locations of treelocations){//for each tree base location
 		
 		g_modelMatrix.setTranslate(locations[0],locations[1],locations[2]);//translate to this location
 		g_modelMatrix.multiply(wind);//non homogeneous transform by shear matrix
 		g_modelMatrix.scale(locations[3],locations[3],locations[3]);//scale tree by tree scale size
-		
-		drawTree(gl, n,viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix,u_Sampler,textures[3],textures[4],2,u_UseTextures);//draw the tree
+		drawTree(gl, n,viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix,u_Sampler,textures[3],textures[4],2);//draw the tree
 	}
-	gl.uniform1i(u_UseTextures, true);//make doubly sure that textures are re-enabled
-	g_seed=seedholder;
+	
+	
 	
 	gl.uniform1i(u_UseNormals,true);//enable normals for water
 	setNormalTexture(gl,textures[6]);//set normal texture 
@@ -641,28 +639,24 @@ function setNormalTexture(gl,texture){//set the normal texture
 
 
 
-function drawTree(gl, n,viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix,u_Sampler,trunk,leaves,depth,u_UseTextures){//this function draws a tree
+function drawTree(gl, n,viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix,u_Sampler,trunk,leaves,depth){//this function draws a tree
 
 	var branchheight=reprandom()*5+4//create a branch of random ish length 
 	g_modelMatrix.translate(0,branchheight,0);//move up half the branch (as cube coords are in center)
-	gl.uniform1i(u_UseTextures, false);//as the branches are so thin it isn't worth having textures and instead leave them brown
-	drawBoxNoTex(gl, n, 1, branchheight, 1, viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix);//draw branch cube
-	gl.uniform1i(u_UseTextures, true);
+	drawBox(gl, n, 1, branchheight, 1, viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix,[trunk],u_Sampler,0);//draw branch cube
 	g_modelMatrix.translate(0,branchheight,0);//move up rest
-	if(depth==0||reprandom()<1-depth/3){//if this is the end of the tree/branch
+	if(depth==0||reprandom()<0.4){//if this is the end of the tree/branch
 			//draw some leaves
-			
-			drawBoxNoTex(gl, n, 3.0+reprandom()*2, 3+reprandom()*2, 3.0+reprandom()*2, viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix);
-			
+			drawBox(gl, n, 3.0+reprandom()*2, 3+reprandom()*2, 3.0+reprandom()*2, viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix,[leaves],u_Sampler,0);
 	}else{//create 3 more branches
 		for(var i=0;i<3;i++){
 			pushMatrix(g_modelMatrix)//store our current transformation
 			g_modelMatrix.rotate(reprandom()*160-80,reprandom()*2-1,reprandom()*2-1,reprandom()*2-1);//rotate randomly to make branch
-			drawTree(gl, n,viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix,u_Sampler,trunk,leaves,depth-1,u_UseTextures);//recurse and draw branch
+			drawTree(gl, n,viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix,u_Sampler,trunk,leaves,depth-1);//recurse and draw branch
 			g_modelMatrix=popMatrix()// go back to prior transformation for continuing tree
 		}
 	}
-	return;
+	
 	
 }
 
@@ -713,27 +707,6 @@ function drawBox(gl, n, width, height, depth, viewProjMatrix, u_MvpMatrix, u_Nor
   g_modelMatrix = popMatrix();   // Retrieve the model matrix
 }
 
-//almost the same as drawBox, but doesn't have the overhead of changing textures
-function drawBoxNoTex(gl, n, width, height, depth, viewProjMatrix, u_MvpMatrix, u_NormalMatrix,u_ModelMatrix) {
-  pushMatrix(g_modelMatrix);   // Save the model matrix
-    // Scale a cube and draw
-    g_modelMatrix.scale(width, height, depth);
-		gl.uniformMatrix4fv(u_ModelMatrix, false, g_modelMatrix.elements);
-    // Calculate the model view project matrix and pass it to u_MvpMatrix
-    g_mvpMatrix.set(viewProjMatrix);
-    g_mvpMatrix.multiply(g_modelMatrix);
-    gl.uniformMatrix4fv(u_MvpMatrix, false, g_mvpMatrix.elements);
-    // Calculate the normal transformation matrix and pass it to u_NormalMatrix
-    g_normalMatrix.setInverseOf(g_modelMatrix);
-    g_normalMatrix.transpose();
-    gl.uniformMatrix4fv(u_NormalMatrix, false, g_normalMatrix.elements);
-		
-		//loadTex(gl, n, texture, u_Sampler, u_UseTextures);
-    // Draw
-		//setTex(gl,u_Sampler,i);,
-    gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_SHORT, 0);
-  g_modelMatrix = popMatrix();   // Retrieve the model matrix
-}
 //load the texture for the first time 
 function loadTex(gl, texture, Sampler, u_UseTextures,tbuf) {
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); // Flip the image's y axis
