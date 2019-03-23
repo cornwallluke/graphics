@@ -352,7 +352,9 @@ function initVertexBuffers(gl) {//this function creates a cube and stores it in 
   // Colors
   var colors = new Float32Array([
     0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   
+		0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,
 		0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   
+		0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,
 		0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   
 		0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2,   0.4, 0.33, 0.2
  ]);
@@ -385,7 +387,7 @@ function initVertexBuffers(gl) {//this function creates a cube and stores it in 
     12,13,14,  12,14,15,    // left
     16,17,18,  16,18,19,    // down
     20,21,22,  20,22,23     // back
- ]);
+	]);
 
   // Write the vertex property to buffers (coordinates, colors and normals)
   if (!initArrayBuffer(gl, 'a_Position', vertices, 3)) return -1;
@@ -651,7 +653,6 @@ function drawTree(gl, n,viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatr
 	g_modelMatrix.translate(0,branchheight,0);//move up rest
 	if(depth==0||reprandom()<1-depth/3){//if this is the end of the tree/branch
 			//draw some leaves
-			
 			drawBoxNoTex(gl, n, 3.0+reprandom()*2, 3+reprandom()*2, 3.0+reprandom()*2, viewProjMatrix, u_MvpMatrix, u_NormalMatrix, u_ModelMatrix);
 			
 	}else{//create 3 more branches
